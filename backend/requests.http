@@ -1,16 +1,33 @@
-### GET request to example server
-GET https://examples.http-client.intellij.net/get
-    ?generated-in=IntelliJ IDEA
+@api_url = http://localhost:8080/api/books
 
-###
-POST http://localhost:8080/api/books/test-add
+### Add a new book
+POST {{api_url}}
 Content-Type: application/json
 
 {
-  "title": "test"
+  "title": "The Hobbit",
+  "metadata": {
+    "author": "J.R.R. Tolkien",
+    "genre": "Fantasy",
+    "pages": 310
+  }
 }
 
-###
+### Add another book
+POST {{api_url}}
+Content-Type: application/json
+
+{
+  "title": "1984",
+  "metadata": {
+    "author": "George Orwell",
+    "genre": "Dystopian",
+    "published": 1949
+  }
+}
+
 ### Get all books
-GET http://localhost:8080/api/books
-Accept: application/json
+GET {{api_url}}
+
+### Get metadata keys
+GET {{api_url}}/metadata-keys
