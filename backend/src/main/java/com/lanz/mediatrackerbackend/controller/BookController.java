@@ -1,27 +1,37 @@
 package com.lanz.mediatrackerbackend.controller;
 
-import com.lanz.mediatrackerbackend.model.Book;
-import com.lanz.mediatrackerbackend.repository.BookRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.lanz.mediatrackerbackend.dto.BookRequest;
+import com.lanz.mediatrackerbackend.dto.BookResponse;
+import com.lanz.mediatrackerbackend.service.BookService;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
 
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
 
-    @Autowired
-    private BookRepository bookRepository;
+    private final BookService bookService;
 
-    @PostMapping("/test-add")
-    public Book addBook(@RequestBody Book book) {
-        return bookRepository.save(book);
+    public BookController(BookService bookService) {
+        this.bookService = bookService;
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public BookResponse addBook(@RequestBody BookRequest bookRequest) {
+        return bookService.addBook(bookRequest);
     }
 
     @GetMapping
-    public List<Book> getAllBooks() {
-        return bookRepository.findAll();
+    public List<BookResponse> getAllBooks() {
+        return bookService.getAllBooks();
+    }
+
+    @GetMapping("/metadata-keys")
+    public List<String> getMetadataKeys() {
+        return bookService.getMetadataKeys();
     }
 }
+
