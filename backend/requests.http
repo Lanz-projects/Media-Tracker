@@ -1,0 +1,16 @@
+### GET request to example server
+GET https://examples.http-client.intellij.net/get
+    ?generated-in=IntelliJ IDEA
+
+###
+POST http://localhost:8080/api/books/test-add
+Content-Type: application/json
+
+{
+  "title": "test"
+}
+
+###
+### Get all books
+GET http://localhost:8080/api/books
+Accept: application/json
