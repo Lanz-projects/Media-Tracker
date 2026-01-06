@@ -22,7 +22,8 @@ Content-Type: application/json
   "metadata": {
     "author": "George Orwell",
     "genre": "Dystopian",
-    "published": 1949
+    "published": 1949,
+    "test2": "Test Pub"
   }
 }
 
@@ -31,3 +32,6 @@ GET {{api_url}}
 
 ### Get metadata keys
 GET {{api_url}}/metadata-keys
+
+### Delete Book with id
+DELETE {{api_url}}/695d68ca277172fe95de6ccd

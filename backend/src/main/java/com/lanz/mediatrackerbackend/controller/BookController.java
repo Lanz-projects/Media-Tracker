@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/books")
@@ -24,13 +25,19 @@ public class BookController {
         return bookService.addBook(bookRequest);
     }
 
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT) //
+    public void deleteBook(@PathVariable String id) {
+        bookService.deleteBook(id);
+    }
+
     @GetMapping
     public List<BookResponse> getAllBooks() {
         return bookService.getAllBooks();
     }
 
     @GetMapping("/metadata-keys")
-    public List<String> getMetadataKeys() {
+    public Set<String> getMetadataKeys() {
         return bookService.getMetadataKeys();
     }
 }
