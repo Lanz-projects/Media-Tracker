@@ -1,12 +1,12 @@
 package com.lanz.mediatrackerbackend.exception;
 
+import java.util.Date;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
-
-import java.util.Date;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -24,9 +24,9 @@ public class GlobalExceptionHandler {
     }
 
     private static class ErrorDetails {
-        private Date timestamp;
-        private String message;
-        private String details;
+        private final Date timestamp;
+        private final String message;
+        private final String details;
 
         public ErrorDetails(Date timestamp, String message, String details) {
             this.timestamp = timestamp;
@@ -35,14 +35,15 @@ public class GlobalExceptionHandler {
         }
 
         // Getters
+        @SuppressWarnings("unused")
         public Date getTimestamp() {
             return timestamp;
         }
-
+        @SuppressWarnings("unused")
         public String getMessage() {
             return message;
         }
-
+        @SuppressWarnings("unused")
         public String getDetails() {
             return details;
         }
