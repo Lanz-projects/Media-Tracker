@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useMemo } from "react";
+import { useMediaCollection } from "./use-media-collection";
 import {
   Book,
   FrontendMetadata,
@@ -30,139 +31,44 @@ const convertFrontendMetadataToBackend = (
   }, {} as BackendMetadata);
 };
 
+const transformBackendBook = (book: BackendBookResponse): Book => ({
+  id: book.id,
+  title: book.title,
+  metadata: convertBackendMetadataToFrontend(book.metadata),
+  createdAt: new Date().toISOString(), // Placeholder
+});
+
 export const useBooks = (searchQuery: string = "") => {
-  const [books, setBooks] = useState<Book[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [metadataKeys, setMetadataKeys] = useState<string[]>([]);
-
-  // Removed initialBooks mock data
-  const fetchBooks = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(`/api/books`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const backendBooks: BackendBookResponse[] = await response.json();
-      const frontendBooks: Book[] = backendBooks.map((b) => ({
-        id: b.id,
-        title: b.title,
-        metadata: convertBackendMetadataToFrontend(b.metadata),
-        createdAt: new Date().toISOString(), // Placeholder, backend does not return createdAt
-      }));
-      setBooks(frontendBooks);
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch books");
-      console.error("Failed to fetch books:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchMetadataKeys = useCallback(async () => {
-    try {
-      const response = await fetch("/api/books/metadata-keys");
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const keys: string[] = await response.json();
-      setMetadataKeys(keys);
-    } catch (err: any) {
-      console.error("Failed to fetch metadata keys:", err);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchBooks();
-    fetchMetadataKeys();
-  }, [fetchBooks, fetchMetadataKeys]);
-
-  const addBook = useCallback(
-    async (book: Omit<Book, "id" | "createdAt">) => {
-      setError(null);
-      try {
-        const backendMetadata = convertFrontendMetadataToBackend(book.metadata);
-        const bookRequest: BookRequest = {
-          title: book.title,
-          metadata: backendMetadata,
-        };
-
-        const response = await fetch("/api/books", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(bookRequest),
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        // Re-fetch all books to get the newly added book with its ID and updated list
-        fetchBooks();
-        fetchMetadataKeys(); // Also re-fetch keys in case new ones were added
-      } catch (err: any) {
-        setError(err.message || "Failed to add book");
-        console.error("Failed to add book:", err);
-      }
-    },
-    [fetchBooks, fetchMetadataKeys]
+  const {
+    items: books,
+    loading,
+    error,
+    metadataKeys,
+    addItem,
+    updateItem,
+    deleteItemById,
+    addMetadataKey,
+  } = useMediaCollection<Book, BookRequest, BackendBookResponse>(
+    "books",
+    transformBackendBook
   );
 
-  const updateBook = useCallback(
-    async (updatedBook: Book) => {
-      setError(null);
-      try {
-        const backendMetadata = convertFrontendMetadataToBackend(
-          updatedBook.metadata
-        );
-        const bookRequest: BookRequest = {
-          title: updatedBook.title,
-          metadata: backendMetadata,
-        };
+  const addBook = (book: Omit<Book, "id" | "createdAt">) => {
+    const bookRequest: BookRequest = {
+      title: book.title,
+      metadata: convertFrontendMetadataToBackend(book.metadata),
+    };
+    return addItem(bookRequest);
+  };
 
-        const response = await fetch(`/api/books/${updatedBook.id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(bookRequest),
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        fetchBooks();
-        fetchMetadataKeys();
-      } catch (err: any) {
-        setError(err.message || "Failed to update book");
-        console.error("Failed to update book:", err);
-      }
-    },
-    [fetchBooks, fetchMetadataKeys]
-  );
-
-  const deleteBook = useCallback(
-    async (bookId: string) => {
-      setError(null);
-      try {
-        const response = await fetch(`/api/books/${bookId}`, {
-          method: "DELETE",
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        // Re-fetch all books to update the list
-        fetchBooks();
-        fetchMetadataKeys(); // Re-fetch keys in case some were removed (less likely but good practice)
-      } catch (err: any) {
-        setError(err.message || "Failed to delete book");
-        console.error("Failed to delete book:", err);
-      }
-    },
-    [fetchBooks, fetchMetadataKeys]
-  );
-
+  const updateBook = (book: Book) => {
+    const bookRequest: BookRequest = {
+      title: book.title,
+      metadata: convertFrontendMetadataToBackend(book.metadata),
+    };
+    return updateItem(book, bookRequest);
+  };
+  
   const filteredBooks = useMemo(() => {
     if (!searchQuery) {
       return books;
@@ -177,18 +83,12 @@ export const useBooks = (searchQuery: string = "") => {
     );
   }, [books, searchQuery]);
 
-  const addMetadataKey = useCallback((newKey: string) => {
-    if (newKey && !metadataKeys.includes(newKey)) {
-      setMetadataKeys((prevKeys) => [...prevKeys, newKey].sort());
-    }
-  }, [metadataKeys]);
-
   return {
     books: filteredBooks,
-    allBooks: books, // Keeping allBooks for consistency, though filteredBooks might be sufficient
+    allBooks: books,
     addBook,
     updateBook,
-    deleteBook,
+    deleteBook: deleteItemById,
     metadataKeys,
     addMetadataKey,
     loading,
