@@ -43,6 +43,18 @@ public class BookService {
         bookRepository.deleteById(id);
     }
 
+    public BookResponse updateBook(String id, BookRequest bookRequest) {
+        Book existingBook = bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+
+        existingBook.setTitle(bookRequest.getTitle());
+        existingBook.setMetadata(bookRequest.getMetadata());
+
+        Book updatedBook = bookRepository.save(existingBook);
+        updateMetadataCache(bookRequest.getMetadata().keySet());
+        return convertToResponse(updatedBook);
+    }
+
     public List<BookResponse> getAllBooks() {
         return bookRepository.findAll().stream()
                 .map(this::convertToResponse)
