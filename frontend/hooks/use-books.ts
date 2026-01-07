@@ -110,14 +110,37 @@ export const useBooks = (searchQuery: string = "") => {
     [fetchBooks, fetchMetadataKeys]
   );
 
-  const updateBook = useCallback(async (updatedBook: Book) => {
-    // This functionality is not yet implemented in the backend.
-    // For now, it will only update the local state.
-    // In a real scenario, this would involve a PUT request to /api/books/{id}
-    setBooks((prevBooks) =>
-      prevBooks.map((book) => (book.id === updatedBook.id ? updatedBook : book))
-    );
-  }, []);
+  const updateBook = useCallback(
+    async (updatedBook: Book) => {
+      setError(null);
+      try {
+        const backendMetadata = convertFrontendMetadataToBackend(
+          updatedBook.metadata
+        );
+        const bookRequest: BookRequest = {
+          title: updatedBook.title,
+          metadata: backendMetadata,
+        };
+
+        const response = await fetch(`/api/books/${updatedBook.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(bookRequest),
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        fetchBooks();
+        fetchMetadataKeys();
+      } catch (err: any) {
+        setError(err.message || "Failed to update book");
+        console.error("Failed to update book:", err);
+      }
+    },
+    [fetchBooks, fetchMetadataKeys]
+  );
 
   const deleteBook = useCallback(
     async (bookId: string) => {
