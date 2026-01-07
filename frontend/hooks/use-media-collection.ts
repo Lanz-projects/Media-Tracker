@@ -13,6 +13,7 @@ export function useMediaCollection<T extends MediaItem, U, V>(
 ) {
   const [items, setItems] = useState<T[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [metadataKeys, setMetadataKeys] = useState<string[]>([]);
 
@@ -48,6 +49,7 @@ export function useMediaCollection<T extends MediaItem, U, V>(
   const addItem = useCallback(
     async (itemRequest: U) => {
       setError(null);
+      setIsSubmitting(true);
       try {
         await api.createItem(endpoint, itemRequest);
         await fetchItems(); // Refetch to get the new item with its ID
@@ -55,6 +57,9 @@ export function useMediaCollection<T extends MediaItem, U, V>(
       } catch (err: any) {
         setError(err.message || `Failed to add item to ${endpoint}`);
         console.error(`Failed to add item to ${endpoint}:`, err);
+        throw err; // Re-throw to be caught by the caller
+      } finally {
+        setIsSubmitting(false);
       }
     },
     [endpoint, fetchItems, fetchMetadataKeys]
@@ -63,6 +68,7 @@ export function useMediaCollection<T extends MediaItem, U, V>(
   const updateItem = useCallback(
     async (item: T, itemRequest: U) => {
       setError(null);
+      setIsSubmitting(true);
       try {
         await api.updateItem(endpoint, item.id, itemRequest);
         await fetchItems(); // Refetch to get updated list
@@ -70,6 +76,9 @@ export function useMediaCollection<T extends MediaItem, U, V>(
       } catch (err: any) {
         setError(err.message || `Failed to update item in ${endpoint}`);
         console.error(`Failed to update item in ${endpoint}:`, err);
+        throw err; // Re-throw to be caught by the caller
+      } finally {
+        setIsSubmitting(false);
       }
     },
     [endpoint, fetchItems, fetchMetadataKeys]
@@ -78,6 +87,7 @@ export function useMediaCollection<T extends MediaItem, U, V>(
   const deleteItemById = useCallback(
     async (itemId: string) => {
       setError(null);
+      setIsSubmitting(true);
       try {
         await api.deleteItem(endpoint, itemId);
         await fetchItems(); // Refetch to update the list
@@ -85,6 +95,9 @@ export function useMediaCollection<T extends MediaItem, U, V>(
       } catch (err: any) {
         setError(err.message || `Failed to delete item from ${endpoint}`);
         console.error(`Failed to delete item from ${endpoint}:`, err);
+        throw err; // Re-throw to be caught by the caller
+      } finally {
+        setIsSubmitting(false);
       }
     },
     [endpoint, fetchItems, fetchMetadataKeys]
@@ -99,6 +112,7 @@ export function useMediaCollection<T extends MediaItem, U, V>(
   return {
     items,
     loading,
+    isSubmitting,
     error,
     metadataKeys,
     addItem,

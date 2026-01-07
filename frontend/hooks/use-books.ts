@@ -42,6 +42,7 @@ export const useBooks = (searchQuery: string = "") => {
   const {
     items: books,
     loading,
+    isSubmitting,
     error,
     metadataKeys,
     addItem,
@@ -53,20 +54,20 @@ export const useBooks = (searchQuery: string = "") => {
     transformBackendBook
   );
 
-  const addBook = (book: Omit<Book, "id" | "createdAt">) => {
+  const addBook = async (book: Omit<Book, "id" | "createdAt">) => {
     const bookRequest: BookRequest = {
       title: book.title,
       metadata: convertFrontendMetadataToBackend(book.metadata),
     };
-    return addItem(bookRequest);
+    await addItem(bookRequest);
   };
 
-  const updateBook = (book: Book) => {
+  const updateBook = async (book: Book) => {
     const bookRequest: BookRequest = {
       title: book.title,
       metadata: convertFrontendMetadataToBackend(book.metadata),
     };
-    return updateItem(book, bookRequest);
+    await updateItem(book, bookRequest);
   };
   
   const filteredBooks = useMemo(() => {
@@ -92,6 +93,7 @@ export const useBooks = (searchQuery: string = "") => {
     metadataKeys,
     addMetadataKey,
     loading,
+    isSubmitting,
     error,
   };
 };

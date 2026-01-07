@@ -9,17 +9,23 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { BookCard } from '@/components/library/books/book-card'
 import { BookFormDrawer } from '@/components/forms/book-form-drawer'
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 import { Plus, Search } from 'lucide-react'
+import { useToast } from "@/hooks/use-toast"
 
 function LibraryPage() {
   const searchParams = useSearchParams()
   const highlightedTitle = searchParams.get('search')
+  const { toast } = useToast()
   
   const [searchQuery, setSearchQuery] = React.useState('')
-  const { books, addBook, updateBook, deleteBook, metadataKeys, addMetadataKey, loading, error } = useBooks(searchQuery)
+  const { books, addBook, updateBook, deleteBook, metadataKeys, addMetadataKey, loading, isSubmitting, error } = useBooks(searchQuery)
 
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false)
   const [bookToEdit, setBookToEdit] = React.useState<Book | null>(null)
+  
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = React.useState(false)
+  const [itemToDelete, setItemToDelete] = React.useState<Book | null>(null)
 
   const handleAddNew = () => {
     setBookToEdit(null)
@@ -31,16 +37,51 @@ function LibraryPage() {
     setIsDrawerOpen(true)
   }
 
-  const handleDelete = async (bookId: string) => {
-    // Here you might want to add a confirmation dialog
-    await deleteBook(bookId)
+  const handleDeleteRequest = (book: Book) => {
+    setItemToDelete(book)
+    setIsConfirmDialogOpen(true)
+    setIsDrawerOpen(false) // Close the form drawer
+  }
+
+  const confirmDelete = async () => {
+    if (itemToDelete) {
+      try {
+        await deleteBook(itemToDelete.id)
+        toast({
+          title: "Book Deleted",
+          description: `"${itemToDelete.title}" has been permanently deleted.`,
+        })
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error Deleting Book",
+          description: "There was a problem deleting the book. Please try again.",
+        })
+      } finally {
+        setItemToDelete(null)
+        setIsConfirmDialogOpen(false)
+      }
+    }
   }
 
   const handleSave = async (book: Book) => {
-    if (bookToEdit) {
-      await updateBook(book)
-    } else {
-      await addBook(book)
+    try {
+      if (bookToEdit) {
+        await updateBook(book)
+        toast({
+          title: "Book Updated",
+          description: `"${book.title}" has been successfully updated.`,
+        })
+      } else {
+        await addBook(book)
+        toast({
+          title: "Book Added",
+          description: `"${book.title}" has been successfully added to your library.`,
+        })
+      }
+      setIsDrawerOpen(false); // Close drawer on success
+    } catch (error) {
+      // The error toast is now handled by the hook, but you could add more specific UI changes here if needed.
     }
   }
 
@@ -70,7 +111,7 @@ function LibraryPage() {
         </div>
       )}
 
-      {error && (
+      {error && !isSubmitting && ( // Only show general error if not in the middle of a submission
         <div className="col-span-full text-center py-16 text-red-500">
           <h3 className="text-xl font-semibold">Error: {error}</h3>
           <p className="text-muted-foreground mt-2">
@@ -107,10 +148,20 @@ function LibraryPage() {
         isOpen={isDrawerOpen}
         onOpenChange={setIsDrawerOpen}
         onSave={handleSave}
-        onDelete={handleDelete}
+        onDelete={handleDeleteRequest}
         bookToEdit={bookToEdit}
         existingKeys={metadataKeys}
         addMetadataKey={addMetadataKey}
+        isSubmitting={isSubmitting}
+      />
+
+      <ConfirmationDialog
+        isOpen={isConfirmDialogOpen}
+        onOpenChange={setIsConfirmDialogOpen}
+        onConfirm={confirmDelete}
+        title="Are you sure?"
+        description={`This will permanently delete "${itemToDelete?.title}". This action cannot be undone.`}
+        isSubmitting={isSubmitting}
       />
     </div>
   )
