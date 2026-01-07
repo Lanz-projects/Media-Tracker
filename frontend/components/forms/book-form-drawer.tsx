@@ -14,16 +14,17 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { MetadataRow } from './metadata-row'
-import { Plus } from 'lucide-react'
+import { Plus, Loader2 } from 'lucide-react'
 
 interface BookFormDrawerProps {
   isOpen: boolean
   onOpenChange: (isOpen: boolean) => void
   onSave: (book: Book) => void
-  onDelete?: (bookId: string) => void;
+  onDelete?: (book: Book) => void
   bookToEdit?: Book | null
   existingKeys: string[]
   addMetadataKey: (newKey: string) => void;
+  isSubmitting?: boolean;
 }
 
 const emptyBook: Book = {
@@ -42,6 +43,7 @@ export function BookFormDrawer({
   bookToEdit,
   existingKeys,
   addMetadataKey,
+  isSubmitting,
 }: BookFormDrawerProps) {
   const [book, setBook] = React.useState<Book>(bookToEdit || emptyBook)
 
@@ -81,13 +83,12 @@ export function BookFormDrawer({
 
   const handleSave = () => {
     onSave(book)
-    onOpenChange(false)
+    // The parent now controls when the drawer is closed
   }
   
   const handleDelete = () => {
     if (onDelete && bookToEdit) {
-      onDelete(bookToEdit.id);
-      onOpenChange(false);
+      onDelete(bookToEdit);
     }
   }
 
@@ -140,16 +141,18 @@ export function BookFormDrawer({
         <SheetFooter className="mt-auto pt-4 border-t-[0.5px] flex justify-between">
           <div>
             {bookToEdit && onDelete && (
-              <Button variant="destructive" onClick={handleDelete}>
+              <Button variant="destructive" onClick={handleDelete} disabled={isSubmitting}>
                 Delete
               </Button>
             )}
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => onOpenChange(false)} variant="ghost">
+            <Button onClick={() => onOpenChange(false)} variant="ghost" disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>Save Book</Button>
+            <Button onClick={handleSave} disabled={isSubmitting}>
+              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save Book'}
+            </Button>
           </div>
         </SheetFooter>
       </SheetContent>

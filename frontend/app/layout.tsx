@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/layout/theme-provider";
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileDock } from "@/components/layout/mobile-dock";
 import { DesktopThemeToggle } from "@/components/layout/desktop-theme-toggle";
+import { Toaster } from "@/components/ui/toaster";
 
 const fontSans = GeistSans;
 
@@ -49,6 +50,7 @@ export default function RootLayout({
             <MobileDock />
             <DesktopThemeToggle />
           </div>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
