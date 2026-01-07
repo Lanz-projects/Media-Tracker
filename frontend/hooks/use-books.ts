@@ -41,7 +41,6 @@ export const useBooks = (searchQuery: string = "") => {
     setLoading(true);
     setError(null);
     try {
-      console.log("FETCHING");
       const response = await fetch(`/api/books`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -83,7 +82,6 @@ export const useBooks = (searchQuery: string = "") => {
   const addBook = useCallback(
     async (book: Omit<Book, "id" | "createdAt">) => {
       setError(null);
-      console.log("ADDING BOOK");
       try {
         const backendMetadata = convertFrontendMetadataToBackend(book.metadata);
         const bookRequest: BookRequest = {
@@ -91,7 +89,6 @@ export const useBooks = (searchQuery: string = "") => {
           metadata: backendMetadata,
         };
 
-        console.log(bookRequest);
         const response = await fetch("/api/books", {
           method: "POST",
           headers: {
@@ -119,9 +116,6 @@ export const useBooks = (searchQuery: string = "") => {
     // In a real scenario, this would involve a PUT request to /api/books/{id}
     setBooks((prevBooks) =>
       prevBooks.map((book) => (book.id === updatedBook.id ? updatedBook : book))
-    );
-    console.warn(
-      "Update Book functionality is not fully implemented for backend persistence."
     );
   }, []);
 
@@ -160,6 +154,12 @@ export const useBooks = (searchQuery: string = "") => {
     );
   }, [books, searchQuery]);
 
+  const addMetadataKey = useCallback((newKey: string) => {
+    if (newKey && !metadataKeys.includes(newKey)) {
+      setMetadataKeys((prevKeys) => [...prevKeys, newKey].sort());
+    }
+  }, [metadataKeys]);
+
   return {
     books: filteredBooks,
     allBooks: books, // Keeping allBooks for consistency, though filteredBooks might be sufficient
@@ -167,6 +167,7 @@ export const useBooks = (searchQuery: string = "") => {
     updateBook,
     deleteBook,
     metadataKeys,
+    addMetadataKey,
     loading,
     error,
   };

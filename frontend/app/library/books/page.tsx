@@ -16,7 +16,7 @@ function LibraryPage() {
   const highlightedTitle = searchParams.get('search')
   
   const [searchQuery, setSearchQuery] = React.useState('')
-  const { books, addBook, updateBook, deleteBook, metadataKeys, loading, error } = useBooks(searchQuery)
+  const { books, addBook, updateBook, deleteBook, metadataKeys, addMetadataKey, loading, error } = useBooks(searchQuery)
 
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false)
   const [bookToEdit, setBookToEdit] = React.useState<Book | null>(null)
@@ -110,6 +110,7 @@ function LibraryPage() {
         onDelete={handleDelete}
         bookToEdit={bookToEdit}
         existingKeys={metadataKeys}
+        addMetadataKey={addMetadataKey}
       />
     </div>
   )

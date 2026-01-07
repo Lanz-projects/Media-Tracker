@@ -23,14 +23,13 @@ interface BookFormDrawerProps {
   onDelete?: (bookId: string) => void;
   bookToEdit?: Book | null
   existingKeys: string[]
+  addMetadataKey: (newKey: string) => void;
 }
 
 const emptyBook: Book = {
   id: '',
   title: '',
   metadata: [
-    { id: 'new-1', key: 'Author', value: '' },
-    { id: 'new-2', key: 'Status', value: 'To Read' },
   ],
   createdAt: '',
 };
@@ -42,6 +41,7 @@ export function BookFormDrawer({
   onDelete,
   bookToEdit,
   existingKeys,
+  addMetadataKey,
 }: BookFormDrawerProps) {
   const [book, setBook] = React.useState<Book>(bookToEdit || emptyBook)
 
@@ -57,6 +57,11 @@ export function BookFormDrawer({
   const handleMetadataUpdate = (index: number, updatedMetadata: FrontendMetadata) => {
     const newMetadata = [...book.metadata]
     newMetadata[index] = updatedMetadata
+
+    // Optimistically update the keys in the UI
+    if (updatedMetadata.key && !existingKeys.includes(updatedMetadata.key)) {
+      addMetadataKey(updatedMetadata.key);
+    }
     setBook({ ...book, metadata: newMetadata })
   }
 
