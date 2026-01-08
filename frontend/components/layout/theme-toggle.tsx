@@ -10,7 +10,6 @@ export function ThemeToggle(props: Omit<ButtonProps, 'onClick' | 'aria-label' | 
   return (
     <Button
       variant="ghost"
-      size="icon"
       onClick={() => setTheme(theme === "light" ? "dark" : "light")}
       aria-label="Toggle theme"
       {...props}
