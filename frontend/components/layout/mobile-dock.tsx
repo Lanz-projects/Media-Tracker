@@ -2,11 +2,9 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Library, Plus } from 'lucide-react'
+import { Home, Library, Moon, Sun } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-
-import { ThemeToggle } from './theme-toggle'
 
 const navItems = [
   { href: '/', label: 'Overview', icon: Home },
@@ -15,6 +13,7 @@ const navItems = [
 
 export function MobileDock() {
   const pathname = usePathname()
+  const { setTheme, theme } = useTheme()
 
   return (
     <footer className="md:hidden fixed bottom-4 left-4 right-4 h-16 z-50">
@@ -35,10 +34,17 @@ export function MobileDock() {
             </Link>
            )
         })}
-        <div className="flex flex-col items-center gap-1 w-16">
-          <ThemeToggle />
-          <span className="text-xs text-muted-foreground">Theme</span>
-        </div>
+        <button
+          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+          aria-label="Toggle theme"
+          className="flex flex-col items-center gap-1 w-16 text-muted-foreground transition-all hover:text-primary"
+        >
+          <div className="relative h-5 w-5">
+            <Sun className="absolute h-full w-full rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-full w-full rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          </div>
+          <span className="text-xs">Theme</span>
+        </button>
       </div>
     </footer>
   )
