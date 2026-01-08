@@ -19,7 +19,20 @@ function LibraryPage() {
   const { toast } = useToast()
   
   const [searchQuery, setSearchQuery] = React.useState('')
-  const { books, addBook, updateBook, deleteBook, metadataKeys, addMetadataKey, loading, isSubmitting, error } = useBooks(searchQuery)
+  const { 
+    books, 
+    addBook, 
+    updateBook, 
+    deleteBook, 
+    metadataKeys, 
+    addMetadataKey, 
+    loading, 
+    isSubmitting, 
+    error,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+  } = useBooks(searchQuery)
 
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false)
   const [bookToEdit, setBookToEdit] = React.useState<Book | null>(null)
@@ -40,7 +53,7 @@ function LibraryPage() {
   const handleDeleteRequest = (book: Book) => {
     setItemToDelete(book)
     setIsConfirmDialogOpen(true)
-    setIsDrawerOpen(false) // Close the form drawer
+    setIsDrawerOpen(false) 
   }
 
   const confirmDelete = async () => {
@@ -79,11 +92,40 @@ function LibraryPage() {
           description: `"${book.title}" has been successfully added to your library.`,
         })
       }
-      setIsDrawerOpen(false); // Close drawer on success
+      setIsDrawerOpen(false); 
     } catch (error) {
-      // The error toast is now handled by the hook, but you could add more specific UI changes here if needed.
+      console.error("Error with saving...")
     }
   }
+  
+  const [pageInput, setPageInput] = React.useState((currentPage + 1).toString());
+
+  React.useEffect(() => {
+    setPageInput((currentPage + 1).toString());
+  }, [currentPage]);
+
+  const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPageInput(e.target.value);
+  };
+
+  const handlePageInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const pageNum = parseInt(pageInput, 10);
+      if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+        setCurrentPage(pageNum - 1);
+      } else {
+        setPageInput((currentPage + 1).toString());
+      }
+    }
+  };
+  
+  const handlePreviousPage = () => {
+    setCurrentPage(currentPage - 1);
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(currentPage + 1);
+  };
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -111,7 +153,7 @@ function LibraryPage() {
         </div>
       )}
 
-      {error && !isSubmitting && ( // Only show general error if not in the middle of a submission
+      {error && !isSubmitting && ( 
         <div className="col-span-full text-center py-16 text-red-500">
           <h3 className="text-xl font-semibold">Error: {error}</h3>
           <p className="text-muted-foreground mt-2">
@@ -144,6 +186,39 @@ function LibraryPage() {
         </>
       )}
 
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center mt-8 space-x-2">
+          <Button
+            onClick={handlePreviousPage}
+            disabled={currentPage === 0}
+            variant="outline"
+            className="w-24"
+          >
+            Previous
+          </Button>
+          <div className="flex items-center space-x-2">
+            <Input
+              type="number"
+              value={pageInput}
+              onChange={handlePageInputChange}
+              onKeyDown={handlePageInputKeyDown}
+              className="w-12 text-center"
+              min="1"
+              max={totalPages}
+            />
+            <span className="text-sm text-muted-foreground">of {totalPages}</span>
+          </div>
+          <Button
+            onClick={handleNextPage}
+            disabled={currentPage >= totalPages - 1}
+            variant="outline"
+            className="w-24"
+          >
+            Next
+          </Button>
+        </div>
+      )}
+
       <BookFormDrawer
         isOpen={isDrawerOpen}
         onOpenChange={setIsDrawerOpen}
@@ -167,7 +242,6 @@ function LibraryPage() {
   )
 }
 
-// Wrap the page in a Suspense boundary because it uses useSearchParams
 export default function LibraryPageWrapper() {
   return (
     <React.Suspense fallback={<div>Loading...</div>}>

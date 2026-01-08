@@ -24,3 +24,13 @@ export interface BookRequest {
   metadata: BackendMetadata;
 }
 
+export interface Page<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number; // Current page number (0-indexed)
+  first: boolean;
+  last: boolean;
+  numberOfElements: number;
+}
