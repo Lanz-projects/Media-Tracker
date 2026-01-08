@@ -49,3 +49,6 @@ Content-Type: application/json
     "test2": "Test Pub"
   }
 }
+
+### Pagination
+GET {{api_url}}/pages?size=1&page=2
