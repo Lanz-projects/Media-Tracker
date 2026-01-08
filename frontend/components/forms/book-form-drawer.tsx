@@ -17,6 +17,7 @@ import { Separator } from '@/components/ui/separator'
 import { MetadataRow } from './metadata-row'
 import { Plus, Loader2, ChevronsLeftRight } from 'lucide-react'
 import { Reorder } from 'framer-motion'
+import { useToast } from '@/hooks/use-toast' // Import useToast
 
 interface BookFormDrawerProps {
   isOpen: boolean
@@ -49,6 +50,7 @@ export function BookFormDrawer({
 }: BookFormDrawerProps) {
   const [book, setBook] = React.useState<Book>(bookToEdit || emptyBook)
   const [isWide, setIsWide] = React.useState(false); // State for wide mode
+  const { toast } = useToast(); // Initialize toast
 
   React.useEffect(() => {
     // Reset form state when drawer opens or book changes
@@ -91,6 +93,14 @@ export function BookFormDrawer({
   }
 
   const handleSave = () => {
+    if (!book.title.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Book title cannot be empty.",
+      });
+      return;
+    }
     onSave(book)
     // The parent now controls when the drawer is closed
   }
@@ -158,7 +168,11 @@ export function BookFormDrawer({
               className="flex flex-col gap-3"
             >
               {book.metadata.map((meta) => (
-                <Reorder.Item key={meta.id} value={meta}>
+                <Reorder.Item 
+                  key={meta.id} 
+                  value={meta}
+                  whileDrag={{ scale: 1.02, boxShadow: "0px 10px 20px rgba(0, 0, 0, 0.1)" }}
+                >
                   <MetadataRow
                     metadata={meta}
                     existingKeys={existingKeys}
@@ -185,7 +199,7 @@ export function BookFormDrawer({
               Delete
             </Button>
           )}
-          <Button onClick={handleSave} disabled={isSubmitting}>
+          <Button onClick={handleSave} disabled={isSubmitting || !book.title.trim()}>
             {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save Book'}
           </Button>
         </SheetFooter>
