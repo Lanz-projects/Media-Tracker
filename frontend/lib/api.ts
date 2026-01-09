@@ -1,6 +1,6 @@
 // @/lib/api.ts
 
-import { Page } from "./types";
+import { PagedModel } from "./types";
 
 const API_BASE_URL = "/api";
 
@@ -16,11 +16,11 @@ export async function getPageable<T>(
   endpoint: string,
   page: number,
   size: number
-): Promise<Page<T>> {
+): Promise<PagedModel<T>> {
   const response = await fetch(
     `${API_BASE_URL}/${endpoint}/pages?page=${page}&size=${size}`
   );
-  return handleResponse<Page<T>>(response);
+  return handleResponse<PagedModel<T>>(response);
 }
 
 export async function getAll<T>(endpoint: string): Promise<T[]> {

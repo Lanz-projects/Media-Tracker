@@ -8,7 +8,7 @@ import {
   BackendBookResponse,
   BookRequest,
   BackendMetadata,
-  Page,
+  PagedModel,
 } from "@/lib/types";
 
 // Helper to convert backend metadata (Map) to frontend metadata (Array)
@@ -41,7 +41,9 @@ const transformBackendBook = (book: BackendBookResponse): Book => ({
 
 export const useBooks = (searchQuery: string = "") => {
   const [books, setBooks] = useState<Book[]>([]);
-  const [page, setPage] = useState<Page<BackendBookResponse> | null>(null);
+  const [page, setPage] = useState<PagedModel<BackendBookResponse> | null>(
+    null
+  );
   const [loading, setLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,7 +61,12 @@ export const useBooks = (searchQuery: string = "") => {
         pageSize
       );
       setPage(pageData);
-      const frontendBooks = pageData.content.map(transformBackendBook);
+      // The actual list of items is nested inside the _embedded object.
+      // The key can change (e.g., "bookResponseList"), so we robustly get the first array.
+      const bookList = pageData._embedded
+        ? Object.values(pageData._embedded)[0] || []
+        : [];
+      const frontendBooks = bookList.map(transformBackendBook);
       setBooks(frontendBooks);
     } catch (err: any) {
       setError(err.message || `Failed to fetch books`);
@@ -172,6 +179,6 @@ export const useBooks = (searchQuery: string = "") => {
     error,
     currentPage,
     setCurrentPage,
-    totalPages: page?.totalPages ?? 0,
+    totalPages: page?.page?.totalPages ?? 0,
   };
 };
