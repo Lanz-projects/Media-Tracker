@@ -1,5 +1,7 @@
 // @/lib/api.ts
 
+import { PagedModel } from "./types";
+
 const API_BASE_URL = "/api";
 
 async function handleResponse<T>(response: Response): Promise<T> {
@@ -8,6 +10,17 @@ async function handleResponse<T>(response: Response): Promise<T> {
     throw new Error(errorText || `HTTP error! status: ${response.status}`);
   }
   return response.json();
+}
+
+export async function getPageable<T>(
+  endpoint: string,
+  page: number,
+  size: number
+): Promise<PagedModel<T>> {
+  const response = await fetch(
+    `${API_BASE_URL}/${endpoint}/pages?page=${page}&size=${size}`
+  );
+  return handleResponse<PagedModel<T>>(response);
 }
 
 export async function getAll<T>(endpoint: string): Promise<T[]> {

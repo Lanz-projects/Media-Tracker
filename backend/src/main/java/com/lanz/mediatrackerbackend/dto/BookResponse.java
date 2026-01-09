@@ -1,8 +1,9 @@
 package com.lanz.mediatrackerbackend.dto;
 
+import org.springframework.hateoas.RepresentationModel;
 import java.util.Map;
 
-public class BookResponse {
+public class BookResponse extends RepresentationModel<BookResponse> {
 
     private String id;
     private String title;
